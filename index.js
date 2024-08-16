@@ -37,6 +37,12 @@ const dbConnect = async () => {
 };
 dbConnect();
 
+// data collections 
+const productCollection = client.db("jobTask2").collection("products");
+
+
+
+
 
 
 
