@@ -5,8 +5,16 @@ const port = process.env.PORT || 5007;
 
 const app = express();
 app.use(express.json())
-
 app.use(cors())
+app.use(bodyParser.json());
+
+
+
+
+
+
+
+
 
 
 
@@ -18,6 +26,6 @@ res.send('start server')
 
 app.listen(port, ()=>{
 
-console.log('server running')
+console.log('Job Task 2 server is running on:', port)
 
 });
