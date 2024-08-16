@@ -48,7 +48,15 @@ const productCollection = client.db("jobTask2").collection("products");
 
 
 
-
+app.get('/products', async(req, res) => {
+    try {
+        const result = await productCollection.find().toArray();
+        res.json(result);
+    } catch (error) {
+        console.error("Error fetching jobs:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+})
 
 
 
