@@ -1,4 +1,4 @@
-# Backend of Product Search and Filter Application
+# Backend of Ecommerce filtering functionlity
 
 ## Project Overview
 
@@ -7,12 +7,13 @@ This is the backend of a MERN stack single-page web application. It serves the p
 ## Key Features
 
 - **Product Management**: Handles CRUD operations for products.
+
 ## Prerequisites
 
 Ensure you have the following installed:
 
-- Node.js (v14 or later)
 - npm or yarn
+- Node.js (v14 or later)
 - MongoDB (local or remote instance)
 
 ## Getting Started
@@ -20,8 +21,8 @@ Ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/sadekcric/job-task-2
-cd job-task-2
+git clone https://github.com/hasibhu/jobTaks2Server
+cd jobTaks2Server
 ```
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
