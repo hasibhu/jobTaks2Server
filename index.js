@@ -7,7 +7,7 @@ const port = process.env.PORT || 5007;
 
 // 
 const corsOptions = {
-    origin: ['http://localhost:5173', ],
+    origin: ['http://localhost:5173', 'https://jobtask2-49c6e.web.app' ],
     credentials: true,
     optionSuccessStatus: 200,
 };
