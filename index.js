@@ -62,7 +62,7 @@ app.get('/products', async(req, res) => {
 
 app.get('/', async (req, res) =>{
 
-res.send('start server')
+res.send('Job task 2:  server')
 
 });
 
