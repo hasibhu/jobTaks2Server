@@ -1,23 +1,21 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require("body-parser");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
-const port = process.env.PORT || 5007;
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const port = process.env.PORT || 5001;
 
-const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:5174', 'https://jobtask2-49c6e.web.app'],
-  credentials: true,
-  optionSuccessStatus: 200,
-};
+// 
+// const corsOptions = {
+//     origin: ['http://localhost:5173', 'http://localhost:5174', 'https://jobtask2-49c6e.web.app' ],
+//     credentials: true,
+//     optionSuccessStatus: 200,
+// };
 
 const app = express();
 app.use(express.json())
-app.use(cors(corsOptions))
-app.use(bodyParser.json());
+app.use(cors())
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.qoryues.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
@@ -27,10 +25,13 @@ const client = new MongoClient(uri, {
   },
 });
 
+
 const dbConnect = async () => {
   try {
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } catch (error) {
     console.log(error);
   }
@@ -40,59 +41,91 @@ dbConnect();
 // data collections 
 const productCollection = client.db("jobTask2").collection("products");
 
-app.get('/products', async (req, res) => {
+
+app.get("/products", async (req, res) => {
   try {
-    const { category, priceRange, color, company, query, sortOrder, sortByDate } = req.query;
+    const pages = parseInt(req.query.pages);
+    const size = parseInt(req.query.size);
+    const { sortPrice, sortDate } = req.query;
 
-    const filter = {};
+    const query = {};
+    const option = {
+      sort: {
+        newPrice: sortPrice === "asc" ? 1 : -1,
+        date: sortDate === "asc" ? 1 : -1,
+      },
+    };
 
-    if (category) {
-      filter.category = category;
-    }
-    if (priceRange) {
-      const ranges = {
-        '50': { $lte: 50 },
-        '100': { $gt: 50, $lte: 100 },
-        '150': { $gt: 100, $lte: 150 },
-        '200': { $gt: 150 }
-      };
-      filter.newPrice = ranges[priceRange];
-    }
-    if (color) {
-      filter.color = color;
-    }
-    if (company) {
-      filter.company = company;
-    }
-    if (query) {
-      filter.title = { $regex: query, $options: 'i' };
-    }
+    const productCount = await productCollection.estimatedDocumentCount();
 
-    let sort = {};
-    if (sortOrder === "lowToHigh") {
-      sort.newPrice = 1;
-    } else if (sortOrder === "highToLow") {
-      sort.newPrice = -1;
-    }
-
-    if (sortByDate === "newestFirst") {
-      sort.createdAt = -1;
-    } else if (sortByDate === "oldestFirst") {
-      sort.createdAt = 1;
-    }
-
-    const result = await productCollection.find(filter).sort(sort).toArray();
-    res.json(result);
+    const data = await productCollection
+      .find(query, option)
+      .skip(pages * size)
+      .limit(size)
+      .toArray();
+    res.status(200).send({ allProduct: data, allProductLength: productCount });
   } catch (error) {
-    console.error("Error fetching products:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(404).send(error.message);
   }
 });
 
-app.get('/', async (req, res) => {
-  res.send('Job task 2: server');
+
+app.get("/search", async (req, res) => {
+  const { query } = req.query;
+
+  if (!query) {
+    res.status(404).send({ message: "Search Query not Required" });
+  }
+
+  try {
+    const filter = {
+      title: { $regex: query, $options: "i" },
+    };
+    const searchingData = await productCollection.find(filter).toArray();
+
+    res.status(200).send(searchingData);
+  } catch (error) {
+    res.status(404).send(error.message);
+  }
 });
 
-app.listen(port, () => {
-  console.log('Job Task 2 server is running on:', port)
+
+
+app.get("/search-category", async (req, res) => {
+
+  try {
+     const { category, min, max, color, brand } = req.query;
+
+  const query = {
+    category: { $regex: category, $options: "i" }, // Case-insensitive
+    newPrice: { $gt: parseInt(min), $lt: parseInt(max) },
+    color: {$regex: color},
+    company: {$regex: brand}
+  };
+
+  const data = await productCollection.find(query).toArray();
+  res.status(200).send(data);
+
+  } catch (error) {
+    res.send(error.message)
+  }
+});
+
+app.get('/details/:id', async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const product = await productCollection.findOne(query)
+  res.send(product)
+})
+
+app.get('/', async (req, res) =>{
+
+res.send('Job task 2:  server')
+
+});
+
+app.listen(port, ()=>{
+
+console.log('Job Task 2 server is running on:', port)
+
 });
